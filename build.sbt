@@ -21,6 +21,7 @@ val sharedSettings = Seq(
   crossScalaVersions := Seq("2.11.12", "2.12.17", "2.13.13"),
   scalacOptions ++= Seq("-unchecked", "-deprecation"),
   scalacOptions ++= {
+    val credentialsFile = Path.userHome / ".sbt" / ".chill-credentials"
     scalaVersion.value match {
       case v if v.startsWith("2.11") => Seq("-Ywarn-unused", "-Ywarn-unused-import", "-target:jvm-1.8")
       case _                         => Seq("-Ywarn-unused", "-release", "8")
@@ -239,19 +240,7 @@ lazy val chillAlgebird = module("algebird")
 ThisBuild / dynverSeparator := "-"
 ThisBuild / dynverSonatypeSnapshots := true
 ThisBuild / publishMavenStyle := true
-ThisBuild / credentials += {
-  (sys.env.get("NEXUS_HOST"), sys.env.get("NEXUS_USERNAME"), sys.env.get("NEXUS_PASSWORD")) match {
-    case (Some(host), Some(user), Some(password)) =>
-      Credentials("Sonatype Nexus Repository Manager", host, user, password)
-    case _ =>
-      val credentialsFile = Path.userHome / ".sbt" / ".chill-credentials"
-      if (credentialsFile.exists()) {
-        Credentials(credentialsFile)
-      } else {
-        throw new IllegalStateException("~/.sbt/.chill-credentials file does not exist and NEXUS_ variables are not provided")
-      }
-  }
-}
+
 ThisBuild / publishTo := {
   val nexus = "https://nexus.xebialabs.com/nexus/content/"
   if (isSnapshot.value)
