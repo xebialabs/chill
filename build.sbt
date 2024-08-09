@@ -122,8 +122,6 @@ lazy val noPublishSettings = Seq(
 val unreleasedModules = Set[String]("akka")
 val javaOnly = Set[String]("java", "hadoop", "thrift", "protobuf")
 
-
-
 def module(name: String) = {
   val id = "chill-%s".format(name)
   Project(id = id, base = file(id))
