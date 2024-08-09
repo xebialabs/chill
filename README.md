@@ -5,6 +5,8 @@
 [![Latest version](https://index.scala-lang.org/twitter/chill/chill/latest.svg?color=orange)](https://index.scala-lang.org/twitter/chill/chill)
 [![Chat](https://badges.gitter.im/twitter/chill.svg)](https://gitter.im/twitter/chill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+IMPORTANT: This is Digital.ai fork of twitter/chill. Please do not use it in your projects unless you are Digital.ai employee. 
+
 Extensions for the [Kryo serialization library](https://github.com/EsotericSoftware/kryo) including
 serializers and a set of classes to ease configuration of Kryo in systems like Hadoop, Storm,
 Akka, etc.
