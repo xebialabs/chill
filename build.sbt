@@ -16,7 +16,7 @@ def scalaVersionSpecificFolders(srcBaseDir: java.io.File, scalaVersion: String):
   }
 
 val sharedSettings = Seq(
-  organization := "com.twitter",
+  organization := "com.xebialabs.chill",
   scalaVersion := "2.13.13",
   crossScalaVersions := Seq("2.11.12", "2.12.17", "2.13.13"),
   scalacOptions ++= Seq("-unchecked", "-deprecation"),
@@ -54,7 +54,7 @@ val sharedSettings = Seq(
     "com.esotericsoftware" % "kryo5" % kryoVersion
   ),
   Test / parallelExecution := true,
-  pomExtra := <url>https://github.com/twitter/chill</url>
+  pomExtra := <url>https://github.com/xebialabs/chill</url>
         <licenses>
       <license>
       <name>Apache 2</name>
@@ -235,3 +235,27 @@ lazy val chillAlgebird = module("algebird")
     )
   )
   .dependsOn(chill)
+
+ThisBuild / dynverSeparator := "-"
+ThisBuild / dynverSonatypeSnapshots := true
+ThisBuild / publishMavenStyle := true
+ThisBuild / credentials += {
+  (sys.env.get("NEXUS_HOST"), sys.env.get("NEXUS_USERNAME"), sys.env.get("NEXUS_PASSWORD")) match {
+    case (Some(host), Some(user), Some(password)) =>
+      Credentials("Sonatype Nexus Repository Manager", host, user, password)
+    case _ =>
+      val credentialsFile = Path.userHome / ".sbt" / ".chill-credentials"
+      if (credentialsFile.exists()) {
+        Credentials(credentialsFile)
+      } else {
+        throw new IllegalStateException("~/.sbt/.chill-credentials file does not exist and NEXUS_ variables are not provided")
+      }
+  }
+}
+ThisBuild / publishTo := {
+  val nexus = "https://nexus.xebialabs.com/nexus/content/"
+  if (isSnapshot.value)
+    Some("snapshots".at(nexus + "repositories/snapshots"))
+  else
+    Some("releases".at(nexus + "repositories/releases"))
+}
