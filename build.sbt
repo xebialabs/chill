@@ -1,5 +1,3 @@
-import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-
 val akkaVersion = "2.6.20"
 val algebirdVersion = "0.13.9"
 val bijectionVersion = "0.9.7"
@@ -98,7 +96,6 @@ lazy val chillAll = Project(
 ).settings(sharedSettings)
   .settings(noPublishSettings)
   .settings(
-    mimaPreviousArtifacts := Set.empty,
     crossScalaVersions := Nil
   )
   .aggregate(
@@ -122,39 +119,10 @@ lazy val noPublishSettings = Seq(
   publishArtifact := false
 )
 
-/**
- * This returns the youngest jar we released that is compatible with the current.
- */
 val unreleasedModules = Set[String]("akka")
 val javaOnly = Set[String]("java", "hadoop", "thrift", "protobuf")
-val binaryCompatVersion = "0.9.2"
 
-def youngestForwardCompatible(subProj: String) =
-  Some(subProj)
-    .filterNot(unreleasedModules.contains)
-    .map { s =>
-      if (javaOnly.contains(s))
-        "com.twitter" % ("chill-" + s) % binaryCompatVersion
-      else
-        "com.twitter" %% ("chill-" + s) % binaryCompatVersion
-    }
 
-val ignoredABIProblems = {
-  import com.typesafe.tools.mima.core._
-  import com.typesafe.tools.mima.core.ProblemFilters._
-  Seq(
-    exclude[MissingTypesProblem]("com.twitter.chill.InnerClosureFinder"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.InnerClosureFinder.visitMethod"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.FieldAccessFinder.visitMethod"),
-    exclude[MissingClassProblem]("com.twitter.chill.FieldAccessFinder"),
-    exclude[MissingTypesProblem]("com.twitter.chill.FieldAccessFinder"),
-    exclude[DirectMissingMethodProblem]("com.twitter.chill.FieldAccessFinder.this"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.Tuple1*Serializer.read"),
-    exclude[IncompatibleMethTypeProblem]("com.twitter.chill.Tuple1*Serializer.write"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.Tuple2*Serializer.read"),
-    exclude[IncompatibleMethTypeProblem]("com.twitter.chill.Tuple2*Serializer.write")
-  )
-}
 
 def module(name: String) = {
   val id = "chill-%s".format(name)
@@ -162,8 +130,6 @@ def module(name: String) = {
     .settings(sharedSettings)
     .settings(
       Keys.name := id,
-      mimaPreviousArtifacts := youngestForwardCompatible(name).toSet,
-      mimaBinaryIssueFilters ++= ignoredABIProblems,
       // Disable cross publishing for java artifacts
       publishArtifact :=
         (if (javaOnly.contains(name) && scalaVersion.value.startsWith("2.11")) false else true)
@@ -178,8 +144,6 @@ lazy val chill = Project(
 ).settings(sharedSettings)
   .settings(
     name := "chill",
-    mimaPreviousArtifacts := Set("com.twitter" %% "chill" % binaryCompatVersion),
-    mimaBinaryIssueFilters ++= ignoredABIProblems,
     libraryDependencies += "org.apache.xbean" % "xbean-asm7-shaded" % asmVersion
   )
   .dependsOn(chillJava)
