@@ -17,8 +17,9 @@
 package com.twitter.chill
 
 import com.twitter.bijection.Injection
-import scala.util.Try
 import org.scalatest.wordspec.AnyWordSpec
+
+import scala.util.Try
 
 class NotSerializable {
   val x = "abcd"
@@ -29,7 +30,6 @@ class NotSerializable {
     }
 }
 class ExternalizerCodecSpec extends AnyWordSpec {
-  import ExternalizerCodec._
   import ExternalizerInjection._
 
   def rt[T: ExternalizerInjection: ExternalizerCodec](t: T): Try[T] = {

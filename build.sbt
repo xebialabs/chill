@@ -248,3 +248,11 @@ ThisBuild / publishTo := {
   else
     Some("releases".at(nexus + "repositories/releases"))
 }
+
+inThisBuild(
+  List(
+    scalaVersion := "2.13.13",
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision
+  )
+)
