@@ -24,7 +24,7 @@ class NotSerializable {
   val x = "abcd"
   override def equals(other: Any): Boolean =
     other match {
-      case i: NotSerializable => true
+      case _: NotSerializable => true
       case _                  => false
     }
 }
