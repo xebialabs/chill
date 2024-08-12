@@ -18,7 +18,7 @@ package com.twitter.chill
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
-import scala.collection.immutable.{ArraySeq, HashMap, HashSet, ListMap, ListSet, NumericRange, Queue}
+import scala.collection.immutable.{ArraySeq, ListMap, ListSet, NumericRange, Queue}
 import scala.runtime.VolatileByteRef
 
 object SerializedExamplesData {
