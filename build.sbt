@@ -1,9 +1,7 @@
-import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-
 val akkaVersion = "2.6.20"
 val algebirdVersion = "0.13.9"
 val bijectionVersion = "0.9.7"
-val kryoVersion = "4.0.2"
+val kryoVersion = "5.6.0"
 val scroogeVersion = "21.2.0"
 val asmVersion = "4.16"
 val protobufVersion = "3.22.2"
@@ -18,11 +16,12 @@ def scalaVersionSpecificFolders(srcBaseDir: java.io.File, scalaVersion: String):
   }
 
 val sharedSettings = Seq(
-  organization := "com.twitter",
-  scalaVersion := "2.11.12",
-  crossScalaVersions := Seq("2.11.12", "2.12.17", "2.13.8"),
+  organization := "com.xebialabs.chill",
+  scalaVersion := "2.13.13",
+  crossScalaVersions := Seq("2.11.12", "2.12.17", "2.13.13"),
   scalacOptions ++= Seq("-unchecked", "-deprecation"),
   scalacOptions ++= {
+    val credentialsFile = Path.userHome / ".sbt" / ".chill-credentials"
     scalaVersion.value match {
       case v if v.startsWith("2.11") => Seq("-Ywarn-unused", "-Ywarn-unused-import", "-target:jvm-1.8")
       case _                         => Seq("-Ywarn-unused", "-release", "8")
@@ -53,10 +52,10 @@ val sharedSettings = Seq(
     "org.scalacheck" %% "scalacheck" % "1.15.2" % "test",
     "org.scalatest" %% "scalatest" % "3.2.15" % "test",
     "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2" % "test",
-    "com.esotericsoftware" % "kryo-shaded" % kryoVersion
+    "com.esotericsoftware" % "kryo5" % kryoVersion
   ),
   Test / parallelExecution := true,
-  pomExtra := <url>https://github.com/twitter/chill</url>
+  pomExtra := <url>https://github.com/xebialabs/chill</url>
         <licenses>
       <license>
       <name>Apache 2</name>
@@ -98,14 +97,12 @@ lazy val chillAll = Project(
 ).settings(sharedSettings)
   .settings(noPublishSettings)
   .settings(
-    mimaPreviousArtifacts := Set.empty,
     crossScalaVersions := Nil
   )
   .aggregate(
     chill,
     chillBijection,
     chillScrooge,
-    chillStorm,
     chillJava,
     chillHadoop,
     chillThrift,
@@ -123,40 +120,8 @@ lazy val noPublishSettings = Seq(
   publishArtifact := false
 )
 
-/**
- * This returns the youngest jar we released that is compatible with the current.
- */
 val unreleasedModules = Set[String]("akka")
-val javaOnly = Set[String]("storm", "java", "hadoop", "thrift", "protobuf")
-val binaryCompatVersion = "0.9.2"
-
-def youngestForwardCompatible(subProj: String) =
-  Some(subProj)
-    .filterNot(unreleasedModules.contains)
-    .map { s =>
-      if (javaOnly.contains(s))
-        "com.twitter" % ("chill-" + s) % binaryCompatVersion
-      else
-        "com.twitter" %% ("chill-" + s) % binaryCompatVersion
-    }
-
-val ignoredABIProblems = {
-  import com.typesafe.tools.mima.core._
-  import com.typesafe.tools.mima.core.ProblemFilters._
-  Seq(
-    exclude[MissingTypesProblem]("com.twitter.chill.storm.BlizzardKryoFactory"),
-    exclude[MissingTypesProblem]("com.twitter.chill.InnerClosureFinder"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.InnerClosureFinder.visitMethod"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.FieldAccessFinder.visitMethod"),
-    exclude[MissingClassProblem]("com.twitter.chill.FieldAccessFinder"),
-    exclude[MissingTypesProblem]("com.twitter.chill.FieldAccessFinder"),
-    exclude[DirectMissingMethodProblem]("com.twitter.chill.FieldAccessFinder.this"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.Tuple1*Serializer.read"),
-    exclude[IncompatibleMethTypeProblem]("com.twitter.chill.Tuple1*Serializer.write"),
-    exclude[IncompatibleResultTypeProblem]("com.twitter.chill.Tuple2*Serializer.read"),
-    exclude[IncompatibleMethTypeProblem]("com.twitter.chill.Tuple2*Serializer.write")
-  )
-}
+val javaOnly = Set[String]("java", "hadoop", "thrift", "protobuf")
 
 def module(name: String) = {
   val id = "chill-%s".format(name)
@@ -164,8 +129,6 @@ def module(name: String) = {
     .settings(sharedSettings)
     .settings(
       Keys.name := id,
-      mimaPreviousArtifacts := youngestForwardCompatible(name).toSet,
-      mimaBinaryIssueFilters ++= ignoredABIProblems,
       // Disable cross publishing for java artifacts
       publishArtifact :=
         (if (javaOnly.contains(name) && scalaVersion.value.startsWith("2.11")) false else true)
@@ -180,8 +143,6 @@ lazy val chill = Project(
 ).settings(sharedSettings)
   .settings(
     name := "chill",
-    mimaPreviousArtifacts := Set("com.twitter" %% "chill" % binaryCompatVersion),
-    mimaBinaryIssueFilters ++= ignoredABIProblems,
     libraryDependencies += "org.apache.xbean" % "xbean-asm7-shaded" % asmVersion
   )
   .dependsOn(chillJava)
@@ -215,15 +176,6 @@ lazy val chillJava = module("java").settings(
   crossPaths := false,
   autoScalaLibrary := false
 )
-
-// This can only have java deps!
-lazy val chillStorm = module("storm")
-  .settings(
-    crossPaths := false,
-    autoScalaLibrary := false,
-    libraryDependencies += "org.apache.storm" % "storm-core" % "2.4.0" % "provided"
-  )
-  .dependsOn(chillJava)
 
 // This can only have java deps!
 lazy val chillHadoop = module("hadoop")
@@ -284,3 +236,23 @@ lazy val chillAlgebird = module("algebird")
     )
   )
   .dependsOn(chill)
+
+ThisBuild / dynverSeparator := "-"
+ThisBuild / dynverSonatypeSnapshots := true
+ThisBuild / publishMavenStyle := true
+
+ThisBuild / publishTo := {
+  val nexus = "https://nexus.xebialabs.com/nexus/content/"
+  if (isSnapshot.value)
+    Some("snapshots".at(nexus + "repositories/snapshots"))
+  else
+    Some("releases".at(nexus + "repositories/releases"))
+}
+
+inThisBuild(
+  List(
+    scalaVersion := "2.13.13",
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision
+  )
+)
