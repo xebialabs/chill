@@ -14,7 +14,7 @@ jobs:
           distribution: "temurin"
           java-version: "17"
       - name: Publish ${{ github.ref }}
-        run: sbt ci-release
+        run: sbt publish
         env:
           NEXUS_HOST: "nexus.xebialabs.com"
           NEXUS_USERNAME: ${{ secrets.NEXUS_CI_USER }}
