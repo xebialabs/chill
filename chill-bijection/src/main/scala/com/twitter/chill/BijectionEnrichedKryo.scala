@@ -16,7 +16,6 @@ limitations under the License.
 
 package com.twitter.chill
 
-import com.twitter.bijection.Injection
 import com.twitter.bijection.{Bijection, Bufferable, ImplicitBijection, Injection}
 
 import scala.reflect.ClassTag
@@ -32,7 +31,7 @@ object BijectionEnrichedKryo {
   )(implicit bij: ImplicitBijection[A, B], cmf: ClassTag[B]): KSerializer[A] =
     new KSerializer[A] {
       def write(k: Kryo, out: Output, obj: A): Unit = kser.write(k, out, bij(obj))
-      def read(k: Kryo, in: Input, cls: Class[A]): A =
+      def read(k: Kryo, in: Input, cls: Class[_ <: A]): A =
         bij.invert(kser.read(k, in, cmf.runtimeClass.asInstanceOf[Class[B]]))
     }
 

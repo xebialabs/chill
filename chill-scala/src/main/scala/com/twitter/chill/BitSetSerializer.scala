@@ -36,14 +36,14 @@ class BitSetSerializer extends KSerializer[BitSet] {
       previous = vi
     }
   }
-  def read(k: Kryo, i: Input, c: Class[BitSet]): BitSet = {
+  def read(k: Kryo, i: Input, c: Class[_ <: BitSet]): BitSet = {
     val size = i.readInt(true)
     if (size == 0) {
       BitSet.empty
     } else {
       var sum = 0
       val bits = new Array[Long](i.readInt(true) / 64 + 1)
-      (0 until size).foreach { step =>
+      (0 until size).foreach { _ =>
         sum += i.readInt(true)
         bits(sum / 64) |= 1L << (sum % 64)
       }
