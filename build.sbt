@@ -1,7 +1,7 @@
 val akkaVersion = "2.6.20"
 val algebirdVersion = "0.13.9"
 val bijectionVersion = "0.9.7"
-val kryoVersion = "5.6.0"
+val kryoVersion = "5.6.2"
 val scroogeVersion = "21.2.0"
 val asmVersion = "4.16"
 val protobufVersion = "3.22.2"
@@ -52,7 +52,7 @@ val sharedSettings = Seq(
     "org.scalacheck" %% "scalacheck" % "1.15.2" % "test",
     "org.scalatest" %% "scalatest" % "3.2.15" % "test",
     "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2" % "test",
-    "com.esotericsoftware" % "kryo5" % kryoVersion
+    "com.esotericsoftware.kryo" % "kryo5" % kryoVersion
   ),
   Test / parallelExecution := true,
   pomExtra := <url>https://github.com/xebialabs/chill</url>
