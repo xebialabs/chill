@@ -11,6 +11,7 @@ jobs:
           cache: "sbt"
           distribution: "temurin"
           java-version: "17"
+      - uses: sbt/setup-sbt@v1
       - run: 'sbt "; +scalafmtCheckAll; scalafmtSbtCheck" "; scalafixEnable; scalafix --check; test:scalafix --check"'
   test:
     runs-on: ubuntu-latest
@@ -21,6 +22,7 @@ jobs:
           cache: "sbt"
           distribution: "temurin"
           java-version: ${{matrix.java}}
+      - uses: sbt/setup-sbt@v1
       - run: 'sbt "++${{matrix.scala}} test"'
     strategy:
       matrix:
@@ -38,5 +40,6 @@ jobs:
           cache: "sbt"
           distribution: "temurin"
           java-version: 17
+      - uses: sbt/setup-sbt@v1
       - run: sbt coverage clean test coverageReport
       - run: "bash <(curl -s https://codecov.io/bash)"
